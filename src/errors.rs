@@ -1,3 +1,1 @@
-use std::process;
-
-pub enum ApplicationErrors {}
+// pub enum ApplicationErrors {}
