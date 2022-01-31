@@ -1,5 +1,3 @@
-extern crate directories;
-
 #[macro_use]
 mod errors;
 mod args;
@@ -7,9 +5,12 @@ mod args;
 use args::Args;
 use chrono;
 use directories::ProjectDirs;
-use std::fs::{create_dir_all, File};
+use std::fs::{create_dir_all, read_dir, File};
 use std::io::prelude::*;
+use std::io::BufReader;
 use std::path::Path;
+
+const MAX_FILENAME_LENGTH: usize = 15;
 
 fn main() {
     let args = Args::new();
@@ -64,7 +65,7 @@ fn init_folder_if_not_existent(path: &Path) {
 }
 
 fn create_todo_file(path: &Path, name: &Option<String>) {
-    let current_timestamp = chrono::Utc::now().format("%d-%m-%Y.%H:%M%S").to_string();
+    let current_timestamp = chrono::Utc::now().format("%d-%m-%Y.%H:%M:%S").to_string();
     let file_name = path.join(current_timestamp.clone());
     let todo_text = match name {
         Some(name) => edit::edit(name).expect("Unable to open text editor."),
@@ -81,7 +82,54 @@ fn create_todo_file(path: &Path, name: &Option<String>) {
         }
     };
 
-    write!(file, "{}", todo_text);
+    match write!(file, "{}", todo_text) {
+        Ok(_value) => (),
+        Err(error) => panic!("{}", error),
+    }
 }
 
-fn list_all_todos() {}
+fn list_all_todos() {
+    if let Some(data_directory) = ProjectDirs::from("", "", "Todo Rust") {
+        let directory = data_directory.config_dir();
+        let data_children_paths = read_dir(directory).unwrap();
+
+        if read_dir(directory).unwrap().count() == 0 {
+            println!("There are no saved todos.");
+        } else {
+            for path in data_children_paths {
+                let file_name = path
+                    .expect("IO error when iterating paths inside the data directory.")
+                    .file_name()
+                    .into_string()
+                    .expect("Failed to parse file name to string.");
+
+                let mut full_path_name: String =
+                    String::from(directory.as_os_str().to_str().unwrap());
+                full_path_name.push_str("/");
+                full_path_name.push_str(&file_name);
+
+                let file = File::open(&full_path_name).unwrap();
+                let mut lines = BufReader::new(file).lines();
+
+                let first_line = lines
+                    .nth(0)
+                    .unwrap()
+                    .expect("Cannot read first line of file.");
+
+                let mut truncated_first_line = first_line.clone();
+
+                // Truncate the first line if it has any content
+                if first_line != "" {
+                    truncated_first_line.truncate(MAX_FILENAME_LENGTH);
+                    if first_line.len() > MAX_FILENAME_LENGTH {
+                        truncated_first_line.push_str("...");
+                    }
+                }
+
+                println!("{} - {}", file_name, truncated_first_line);
+            }
+        }
+    } else {
+        equit!("Cannot find a data directory for your current operating system.");
+    }
+}
