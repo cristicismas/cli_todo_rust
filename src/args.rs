@@ -24,14 +24,25 @@ impl Args {
       );
     }
 
-    Args {
+    let args = Args {
       command: match get_nth_arg(1) {
         Some(value) => value,
         None => {
           equit!("At least one argument is required. Use `todo help` to display usage info.");
         }
       },
-      name: get_nth_arg(2),
-    }
+      name: match get_nth_arg(2) {
+        Some(value) => {
+          if get_nth_arg(1).unwrap().as_str() != "new" {
+            equit!("Cannot have more than one argument if the first argument is not `new`.");
+          } else {
+            Some(value)
+          }
+        }
+        None => None,
+      },
+    };
+
+    return args;
   }
 }

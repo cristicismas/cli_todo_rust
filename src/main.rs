@@ -14,14 +14,6 @@ use std::path::Path;
 fn main() {
     let args = Args::new();
 
-    match &args.name {
-        Some(_value) => {
-            if args.command.as_str() != "new" {
-                equit!("Cannot have more than one argument if the first argument is not `new`.");
-            }
-        }
-        None => {}
-    }
     match args.command.as_str() {
         "help" => display_available_commands(),
         "new" => add_new_todo(&args.name),
