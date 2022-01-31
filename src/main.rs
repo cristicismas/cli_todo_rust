@@ -1,7 +1,8 @@
 extern crate directories;
 
-mod args;
+#[macro_use]
 mod errors;
+mod args;
 
 use args::Args;
 use chrono;
@@ -9,7 +10,6 @@ use directories::ProjectDirs;
 use std::fs::{create_dir_all, File};
 use std::io::prelude::*;
 use std::path::Path;
-use std::process::exit;
 
 fn main() {
     let args = Args::new();
@@ -17,8 +17,7 @@ fn main() {
     match &args.name {
         Some(_value) => {
             if args.command.as_str() != "new" {
-                eprintln!("Cannot have more than one argument if the first argument is not `new`.");
-                exit(1);
+                equit!("Cannot have more than one argument if the first argument is not `new`.");
             }
         }
         None => {}
@@ -29,8 +28,7 @@ fn main() {
         "list" => list_all_todos(),
         "reminder" => {}
         _ => {
-            eprintln!("Wrong command name. Use `todo help` to display all available commands.");
-            exit(1);
+            equit!("Wrong command name. Use `todo help` to display all available commands.");
         }
     }
 }
@@ -58,8 +56,7 @@ fn add_new_todo(name_reference: &Option<String>) {
         init_folder_if_not_existent(data_directory.config_dir());
         create_todo_file(data_directory.config_dir(), name_reference);
     } else {
-        eprintln!("Cannot find a data directory for your current operating system.");
-        exit(1);
+        equit!("Cannot find a data directory for your current operating system.");
     }
 }
 
@@ -68,8 +65,7 @@ fn init_folder_if_not_existent(path: &Path) {
         match create_dir_all(path) {
             Ok(_) => (),
             Err(_) => {
-                eprintln!("Cannot create a directory inside {:?}", path.display());
-                exit(1);
+                equit!("Cannot create a directory inside {:?}", path.display());
             }
         }
     }
@@ -86,11 +82,10 @@ fn create_todo_file(path: &Path, name: &Option<String>) {
     let mut file: File = match File::create(file_name) {
         Ok(created_file) => created_file,
         Err(_) => {
-            eprintln!(
+            equit!(
                 "Cannot create file {}. Please try again, or file a bug report.",
-                path.join(current_timestamp).display()
+                path.join(current_timestamp).display(),
             );
-            exit(1);
         }
     };
 

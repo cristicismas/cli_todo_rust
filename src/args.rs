@@ -1,8 +1,7 @@
 // path decorator is included so importing from a sibling mod is possible.
-// #[path = "errors.rs"]
-// mod errors;
-
-use std::process::exit;
+#[path = "errors.rs"]
+#[macro_use]
+mod errors;
 
 const MAX_COMMANDS_ALLOWED: usize = 3;
 
@@ -19,19 +18,17 @@ pub struct Args {
 impl Args {
   pub fn new() -> Self {
     if std::env::args().len() > MAX_COMMANDS_ALLOWED {
-      eprintln!(
+      equit!(
         "Too many arguments. Maximum number of arguments is {}",
         MAX_COMMANDS_ALLOWED - 1,
       );
-      exit(1);
     }
 
     Args {
       command: match get_nth_arg(1) {
         Some(value) => value,
         None => {
-          eprintln!("At least one argument is required. Use `todo help` to display usage info.");
-          exit(1);
+          equit!("At least one argument is required. Use `todo help` to display usage info.");
         }
       },
       name: get_nth_arg(2),
