@@ -96,7 +96,7 @@ fn list_all_todos() {
         if read_dir(directory).unwrap().count() == 0 {
             println!("There are no saved todos.");
         } else {
-            for path in data_children_paths {
+            for (index, path) in data_children_paths.enumerate() {
                 let file_name = path
                     .expect("IO error when iterating paths inside the data directory.")
                     .file_name()
@@ -126,7 +126,7 @@ fn list_all_todos() {
                     }
                 }
 
-                println!("{} - {}", file_name, truncated_first_line);
+                println!("{}. {} - {}", index, file_name, truncated_first_line);
             }
         }
     } else {
